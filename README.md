@@ -5,7 +5,6 @@ Controller for OnRobot RG6 gripper.
 # Requirements
 
 - Python 3.7.3
-  - bitstring >= 3.1.9
   - pymodbus>=2.5.3
 
 # Installation

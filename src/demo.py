@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from bitstring import Bits
+import time
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 
 
@@ -30,8 +30,7 @@ def get_fingertip_offset(client):
        Please note that the value is a signed two's complement number.
     """
     result = client.read_holding_registers(address=258, count=1, unit=65)
-    print(result.registers[0])
-    offset_mm = Bits(bin=str(result.registers[0])).int
+    offset_mm = result.registers[0] / 10.0
     return offset_mm
 
 
@@ -40,9 +39,8 @@ def get_width(client):
        Please note that the width is provided without any fingertip offset,
        as it is measured between the insides of the aluminum fingers.
     """
-    offset = 100
     result = client.read_holding_registers(address=267, count=1, unit=65)
-    width_mm = result.registers[0] - offset
+    width_mm = result.registers[0] / 10.0
     return width_mm
 
 
@@ -51,7 +49,7 @@ def get_width_with_offset(client):
        The set fingertip offset is considered.
     """
     result = client.read_holding_registers(address=275, count=1, unit=65)
-    width_mm = result.registers[0]
+    width_mm = result.registers[0] / 10.0
     return width_mm
 
 
@@ -102,12 +100,15 @@ def run_demo():
         baudrate=115200,
         timeout=1)
     client.connect()
-    print(get_status(client))
-    #print(get_fingertip_offset(client))
-    print(get_width(client))
-    print(get_width_with_offset(client))
-    #set_target_force(client, 1600)
-    set_target_width(client, 1000)
+
+    if get_status(client) == 0:
+        print(get_fingertip_offset(client))
+        print(get_width_with_offset(client))
+
+        set_target_width(client, 1600)
+        time.sleep(1.0)
+        set_target_width(client, 0)
+
     client.close()
 
 
