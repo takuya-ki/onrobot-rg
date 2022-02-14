@@ -1,4 +1,4 @@
-# onrobot_rg6
+# onrobot-rg6
 
 Controller for OnRobot RG6 gripper.
 
@@ -9,7 +9,7 @@ Controller for OnRobot RG6 gripper.
 
 # Installation
 
-	$ git clone git@github.com:takuya-ki/onrobot_rg6.git; cd onrobot_rg6
+	$ git clone git@github.com:takuya-ki/onrobot-rg6.git; cd onrobot-rg6
 	$ pip install -r requirements.txt
 
 # Usage
@@ -22,3 +22,7 @@ Controller for OnRobot RG6 gripper.
 # Author / Contributor
 
 [Takuya Kiyokawa](https://takuya-ki.github.io/)
+
+## License
+
+This software is released under the MIT License, see [LICENSE](./LICENSE).
