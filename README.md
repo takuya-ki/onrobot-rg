@@ -14,7 +14,10 @@ Controller for OnRobot RG6 gripper.
 
 # Usage
 
-	$ python src/demo.py
+1. Connect the cable between Compute Box and Tool Changer.
+2. Connect an ethernet cable between Compute Box and your computer.
+3. Execute demo script as below  
+	`$ python src/demo.py`
 
 # Author / Contributor
 
