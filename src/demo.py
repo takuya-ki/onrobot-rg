@@ -1,7 +1,27 @@
 #!/usr/bin/env python3
 
 import time
+import argparse
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
+
+
+def get_fingertip_offset(client):
+    """Reads the current fingertip offset in 1/10 millimeters.
+       Please note that the value is a signed two's complement number.
+    """
+    result = client.read_holding_registers(address=258, count=1, unit=65)
+    offset_mm = result.registers[0] / 10.0
+    return offset_mm
+
+
+def get_width(client):
+    """Reads the current width between the gripper fingers in 1/10 millimeters.
+       Please note that the width is provided without any fingertip offset,
+       as it is measured between the insides of the aluminum fingers.
+    """
+    result = client.read_holding_registers(address=267, count=1, unit=65)
+    width_mm = result.registers[0] / 10.0
+    return width_mm
 
 
 def get_status(client):
@@ -61,25 +81,6 @@ def get_status(client):
     return status_list
 
 
-def get_fingertip_offset(client):
-    """Reads the current fingertip offset in 1/10 millimeters.
-       Please note that the value is a signed two's complement number.
-    """
-    result = client.read_holding_registers(address=258, count=1, unit=65)
-    offset_mm = result.registers[0] / 10.0
-    return offset_mm
-
-
-def get_width(client):
-    """Reads the current width between the gripper fingers in 1/10 millimeters.
-       Please note that the width is provided without any fingertip offset,
-       as it is measured between the insides of the aluminum fingers.
-    """
-    result = client.read_holding_registers(address=267, count=1, unit=65)
-    width_mm = result.registers[0] / 10.0
-    return width_mm
-
-
 def get_width_with_offset(client):
     """Reads the current width between the gripper fingers in 1/10 millimeters.
        The set fingertip offset is considered.
@@ -97,13 +98,16 @@ def easy_control(client, command):
        (see busy flag in the Status field).
        The valid flags are:
 
-       1: grip, Start the motion, with the preset target force and width.
-                Width is calculated without the fingertip offset.
-                Please note that the gripper will ignore this command
-                if the busy flag is set in the status field.
-       8: stop, Stop the current motion.
-       16: grip_w_offset, Same as grip, but width is calculated
-                          with the set fingertip offset.
+       1 (0x0001):  grip
+                    Start the motion, with the preset target force and width.
+                    Width is calculated without the fingertip offset.
+                    Please note that the gripper will ignore this command
+                    if the busy flag is set in the status field.
+       8 (0x0008):  stop
+                    Stop the current motion.
+       16 (0x0010): grip_w_offset
+                    Same as grip, but width is calculated
+                    with the set fingertip offset.
     """
     result = client.write_register(address=2, value=command, unit=65)
 
@@ -132,6 +136,7 @@ def set_target_width(client, width_val):
 
 
 def run_demo():
+    """Runs gripper open-close demonstration once."""
     client = ModbusClient(
         toolchanger_ip,
         port=toolchanger_port,
@@ -144,16 +149,30 @@ def run_demo():
 
     if get_status(client)[0] == 0:
         print("Current hand opening width: " +
-              str(get_width_with_offset(client)))
+              str(get_width_with_offset(client)) +
+              " mm")
 
         set_target_width(client, 1600)  # fully opened
         time.sleep(1.0)
-        set_target_width(client, 100)  # fully closed
+        set_target_width(client, 0)  # fully closed
 
     client.close()
 
 
+def get_options():
+    """Returns user-specific options."""
+    parser = argparse.ArgumentParser(description='Set options.')
+    parser.add_argument(
+        '--ip', dest='ip', type=str, default="192.168.1.1",
+        help='set ip address')
+    parser.add_argument(
+        '--port', dest='port', type=str, default="502",
+        help='set port number')
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    toolchanger_ip = "192.168.1.1"
-    toolchanger_port = "502"
+    args = get_options()
+    toolchanger_ip = args.ip
+    toolchanger_port = args.port
     run_demo()
