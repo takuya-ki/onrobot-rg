@@ -9,20 +9,56 @@ def get_status(client):
        This status field indicates the status of the gripper and its motion.
        It is composed of 7 flags, described in the table below.
 
-       0: busy
-       1: grip detected
-       2: S1 pushed
-       3: S1 trigged
-       4: S2 pushed
-       5: S2 trigged
-       6: safety error
+       Bit      Name            Description
+       0 (LSB): busy            High (1) when a motion is ongoing,
+                                low (0) when not.
+                                The gripper will only accept new commands
+                                when this flag is low.
+       1:       grip detected   High (1) when an internal- or
+                                external grip is detected.
+       2:       S1 pushed       High (1) when safety switch 1 is pushed.
+       3:       S1 trigged      High (1) when safety circuit 1 is activated.
+                                The gripper will not move
+                                while this flag is high;
+                                can only be reset by power cycling the gripper.
+       4:       S2 pushed       High (1) when safety switch 2 is pushed.
+       5:       S2 trigged      High (1) when safety circuit 2 is activated.
+                                The gripper will not move
+                                while this flag is high;
+                                can only be reset by power cycling the gripper.
+       6:       safety error    High (1) when on power on any of
+                                the safety switch is pushed.
+       10-16:   reserved        Not used.
     """
     # address   : register number
     # count     : number of registers to be read
     # unit      : slave device address
     result = client.read_holding_registers(address=268, count=1, unit=65)
-    status = result.registers[0]
-    return status
+    status = format(result.registers[0], '016b')
+    status_list = [0] * 7
+    if int(status[-1]):
+        print("Any motion is not ongoing so new commands are accepted.")
+        status_list[0] = 1
+    elif int(status[-2]):
+        print("An internal- or external grip is detected.")
+        status_list[1] = 1
+    elif int(status[-3]):
+        print("Safety switch 1 is pushed.")
+        status_list[2] = 1
+    elif int(status[-4]):
+        print("Safety circuit 1 is activated so the gripper will not move.")
+        status_list[3] = 1
+    elif int(status[-5]):
+        print("Safety switch 2 is pushed.")
+        status_list[4] = 1
+    elif int(status[-6]):
+        print("Safety circuit 2 is activated so the gripper will not move.")
+        status_list[5] = 1
+    elif int(status[-7]):
+        print("Any of the safety switch is pushed.")
+        status_list[6] = 1
+
+    return status_list
 
 
 def get_fingertip_offset(client):
@@ -106,13 +142,13 @@ def run_demo():
         timeout=1)
     client.connect()
 
-    if get_status(client) == 0:
+    if get_status(client)[0] == 0:
         print("Current hand opening width: " +
               str(get_width_with_offset(client)))
 
         set_target_width(client, 1600)  # fully opened
         time.sleep(1.0)
-        set_target_width(client, 0)  # fully closed
+        set_target_width(client, 100)  # fully closed
 
     client.close()
 
