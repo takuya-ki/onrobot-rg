@@ -59,22 +59,22 @@ def get_status(client):
     if int(status[-1]):
         print("Any motion is not ongoing so new commands are accepted.")
         status_list[0] = 1
-    elif int(status[-2]):
+    if int(status[-2]):
         print("An internal- or external grip is detected.")
         status_list[1] = 1
-    elif int(status[-3]):
+    if int(status[-3]):
         print("Safety switch 1 is pushed.")
         status_list[2] = 1
-    elif int(status[-4]):
+    if int(status[-4]):
         print("Safety circuit 1 is activated so the gripper will not move.")
         status_list[3] = 1
-    elif int(status[-5]):
+    if int(status[-5]):
         print("Safety switch 2 is pushed.")
         status_list[4] = 1
-    elif int(status[-6]):
+    if int(status[-6]):
         print("Safety circuit 2 is activated so the gripper will not move.")
         status_list[5] = 1
-    elif int(status[-7]):
+    if int(status[-7]):
         print("Any of the safety switch is pushed.")
         status_list[6] = 1
 
@@ -90,7 +90,7 @@ def get_width_with_offset(client):
     return width_mm
 
 
-def easy_control(client, command):
+def set_control_mode(client, command):
     """The control field is used to start and stop gripper motion.
        Only one option should be set at a time.
        Please note that the gripper will not start a new motion
@@ -119,7 +119,6 @@ def set_target_force(client, force_val):
        The valid range is 0 to 400 for the RG2 and 0 to 1200 for the RG6.
     """
     result = client.write_register(address=0, value=force_val, unit=65)
-    easy_control(client, 16)
 
 
 def set_target_width(client, width_val):
@@ -132,7 +131,27 @@ def set_target_width(client, width_val):
        as it is measured between the insides of the aluminum fingers.
     """
     result = client.write_register(address=1, value=width_val, unit=65)
-    easy_control(client, 16)
+
+
+def close_gripper(client, force_val=400):
+    """Closes gripper."""
+    params = [force_val, 0, 16]
+    print("Start closing gripper.")
+    result = client.write_registers(address=0, values=params, unit=65)
+
+
+def open_gripper(client, force_val=400):
+    """Opens gripper."""
+    params = [force_val, 1600, 16]
+    print("Start opening gripper.")
+    result = client.write_registers(address=0, values=params, unit=65)
+
+
+def move_gripper(client, width_val, force_val=400):
+    """Moves gripper to the specified width."""
+    params = [force_val, width_val, 16]
+    print("Start moving gripper.")
+    result = client.write_registers(address=0, values=params, unit=65)
 
 
 def run_demo():
@@ -147,14 +166,26 @@ def run_demo():
         timeout=1)
     client.connect()
 
-    if get_status(client)[0] == 0:
+    if not get_status(client)[0]:  # not busy
         print("Current hand opening width: " +
               str(get_width_with_offset(client)) +
               " mm")
 
-        set_target_width(client, 1600)  # fully opened
-        time.sleep(1.0)
-        set_target_width(client, 0)  # fully closed
+        open_gripper(client)        # fully opened
+        while True:
+            time.sleep(0.5)
+            if not get_status(client)[0]:
+                break
+        close_gripper(client)       # fully closed
+        while True:
+            time.sleep(0.5)
+            if not get_status(client)[0]:
+                break
+        move_gripper(client, 800)   # move to middle point
+        while True:
+            time.sleep(0.5)
+            if not get_status(client)[0]:
+                break
 
     client.close()
 
