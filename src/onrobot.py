@@ -28,16 +28,18 @@ class RG6():
         """Reads the current fingertip offset in 1/10 millimeters.
         Please note that the value is a signed two's complement number.
         """
-        result = self.client.read_holding_registers(address=258, count=1, unit=65)
+        result = self.client.read_holding_registers(
+            address=258, count=1, unit=65)
         offset_mm = result.registers[0] / 10.0
         return offset_mm
 
     def get_width(self):
-        """Reads the current width between the gripper fingers in 1/10 millimeters.
+        """Reads current width between gripper fingers in 1/10 millimeters.
         Please note that the width is provided without any fingertip offset,
         as it is measured between the insides of the aluminum fingers.
         """
-        result = self.client.read_holding_registers(address=267, count=1, unit=65)
+        result = self.client.read_holding_registers(
+            address=267, count=1, unit=65)
         width_mm = result.registers[0] / 10.0
         return width_mm
 
@@ -48,29 +50,30 @@ class RG6():
 
         Bit      Name            Description
         0 (LSB): busy            High (1) when a motion is ongoing,
-                                    low (0) when not.
-                                    The gripper will only accept new commands
-                                    when this flag is low.
+                                  low (0) when not.
+                                  The gripper will only accept new commands
+                                  when this flag is low.
         1:       grip detected   High (1) when an internal- or
-                                    external grip is detected.
+                                  external grip is detected.
         2:       S1 pushed       High (1) when safety switch 1 is pushed.
         3:       S1 trigged      High (1) when safety circuit 1 is activated.
-                                    The gripper will not move
-                                    while this flag is high;
-                                    can only be reset by power cycling the gripper.
+                                  The gripper will not move
+                                  while this flag is high;
+                                  can only be reset by power cycling.
         4:       S2 pushed       High (1) when safety switch 2 is pushed.
         5:       S2 trigged      High (1) when safety circuit 2 is activated.
-                                    The gripper will not move
-                                    while this flag is high;
-                                    can only be reset by power cycling the gripper.
+                                  The gripper will not move
+                                  while this flag is high;
+                                  can only be reset by power cycling.
         6:       safety error    High (1) when on power on any of
-                                    the safety switch is pushed.
+                                  the safety switch is pushed.
         10-16:   reserved        Not used.
         """
         # address   : register number
         # count     : number of registers to be read
         # unit      : slave device address
-        result = self.client.read_holding_registers(address=268, count=1, unit=65)
+        result = self.client.read_holding_registers(
+            address=268, count=1, unit=65)
         status = format(result.registers[0], '016b')
         status_list = [0] * 7
         if int(status[-1]):
@@ -83,13 +86,13 @@ class RG6():
             print("Safety switch 1 is pushed.")
             status_list[2] = 1
         if int(status[-4]):
-            print("Safety circuit 1 is activated so the gripper will not move.")
+            print("Safety circuit 1 is activated so it will not move.")
             status_list[3] = 1
         if int(status[-5]):
             print("Safety switch 2 is pushed.")
             status_list[4] = 1
         if int(status[-6]):
-            print("Safety circuit 2 is activated so the gripper will not move.")
+            print("Safety circuit 2 is activated so it will not move.")
             status_list[5] = 1
         if int(status[-7]):
             print("Any of the safety switch is pushed.")
@@ -98,10 +101,11 @@ class RG6():
         return status_list
 
     def get_width_with_offset(self):
-        """Reads the current width between the gripper fingers in 1/10 millimeters.
+        """Reads current width between gripper fingers in 1/10 millimeters.
         The set fingertip offset is considered.
         """
-        result = self.client.read_holding_registers(address=275, count=1, unit=65)
+        result = self.client.read_holding_registers(
+            address=275, count=1, unit=65)
         width_mm = result.registers[0] / 10.0
         return width_mm
 
@@ -114,17 +118,18 @@ class RG6():
         The valid flags are:
 
         1 (0x0001):  grip
-                        Start the motion, with the preset target force and width.
-                        Width is calculated without the fingertip offset.
-                        Please note that the gripper will ignore this command
-                        if the busy flag is set in the status field.
+                      Start the motion, with the target force and width.
+                      Width is calculated without the fingertip offset.
+                      Please note that the gripper will ignore this command
+                      if the busy flag is set in the status field.
         8 (0x0008):  stop
-                        Stop the current motion.
+                      Stop the current motion.
         16 (0x0010): grip_w_offset
-                        Same as grip, but width is calculated
-                        with the set fingertip offset.
+                      Same as grip, but width is calculated
+                      with the set fingertip offset.
         """
-        result = self.client.write_register(address=2, value=command, unit=65)
+        result = self.client.write_register(
+            address=2, value=command, unit=65)
 
     def set_target_force(self, force_val):
         """Writes the target force to be reached
@@ -132,7 +137,8 @@ class RG6():
         It must be provided in 1/10th Newtons.
         The valid range is 0 to 400 for the RG2 and 0 to 1200 for the RG6.
         """
-        result = self.client.write_register(address=0, value=force_val, unit=65)
+        result = self.client.write_register(
+            address=0, value=force_val, unit=65)
 
     def set_target_width(self, width_val):
         """Writes the target width between
@@ -143,22 +149,26 @@ class RG6():
         corrected for any fingertip offset,
         as it is measured between the insides of the aluminum fingers.
         """
-        result = self.client.write_register(address=1, value=width_val, unit=65)
+        result = self.client.write_register(
+            address=1, value=width_val, unit=65)
 
     def close_gripper(self, force_val=400):
         """Closes gripper."""
         params = [force_val, 0, 16]
         print("Start closing gripper.")
-        result = self.client.write_registers(address=0, values=params, unit=65)
+        result = self.client.write_registers(
+            address=0, values=params, unit=65)
 
     def open_gripper(self, force_val=400):
         """Opens gripper."""
         params = [force_val, 1600, 16]
         print("Start opening gripper.")
-        result = self.client.write_registers(address=0, values=params, unit=65)
+        result = self.client.write_registers(
+            address=0, values=params, unit=65)
 
     def move_gripper(self, width_val, force_val=400):
         """Moves gripper to the specified width."""
         params = [force_val, width_val, 16]
         print("Start moving gripper.")
-        result = self.client.write_registers(address=0, values=params, unit=65)
+        result = self.client.write_registers(
+            address=0, values=params, unit=65)
