@@ -3,40 +3,44 @@
 import time
 import argparse
 
-from onrobot import RG6
+from onrobot import RG
 
 
 def run_demo():
     """Runs gripper open-close demonstration once."""
-    rg6 = RG6(toolchanger_ip, toolchanger_port)
+    rg = RG(gripper, toolchanger_ip, toolchanger_port)
 
-    if not rg6.get_status()[0]:  # not busy
+    if not rg.get_status()[0]:  # not busy
         print("Current hand opening width: " +
-              str(rg6.get_width_with_offset()) +
+              str(rg.get_width_with_offset()) +
               " mm")
 
-        rg6.open_gripper()     # fully opened
+        rg.open_gripper()     # fully opened
         while True:
             time.sleep(0.5)
-            if not rg6.get_status()[0]:
+            if not rg.get_status()[0]:
                 break
-        rg6.close_gripper()    # fully closed
+        rg.close_gripper()    # fully closed
         while True:
             time.sleep(0.5)
-            if not rg6.get_status()[0]:
+            if not rg.get_status()[0]:
                 break
-        rg6.move_gripper(800)  # move to middle point
+        rg.move_gripper(800)  # move to middle point
         while True:
             time.sleep(0.5)
-            if not rg6.get_status()[0]:
+            if not rg.get_status()[0]:
                 break
 
-    rg6.close_connection()
+    rg.close_connection()
 
 
 def get_options():
     """Returns user-specific options."""
     parser = argparse.ArgumentParser(description='Set options.')
+    parser.add_argument(
+        '--gripper', dest='gripper', type=str,
+        default="rg6", choices=['rg2', 'rg6'],
+        help='set gripper type, rg2 or rg6')
     parser.add_argument(
         '--ip', dest='ip', type=str, default="192.168.1.1",
         help='set ip address')
@@ -48,6 +52,7 @@ def get_options():
 
 if __name__ == '__main__':
     args = get_options()
+    gripper = args.gripper
     toolchanger_ip = args.ip
     toolchanger_port = args.port
     run_demo()

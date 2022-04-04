@@ -3,9 +3,9 @@
 from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 
 
-class RG6():
+class RG():
 
-    def __init__(self, ip, port):
+    def __init__(self, gripper, ip, port):
         self.client = ModbusClient(
             ip,
             port=port,
@@ -14,6 +14,16 @@ class RG6():
             parity='E',
             baudrate=115200,
             timeout=1)
+        if gripper not in ['rg2', 'rg6']:
+            print("Please specify either rg2 or rg6.")
+            return
+        self.gripper = gripper  # RG2/6
+        if self.gripper == 'rg2':
+            self.max_width = 1100
+            self.max_force = 400
+        elif self.gripper == 'rg6':
+            self.max_width = 1600
+            self.max_force = 1200
         self.open_connection()
 
     def open_connection(self):
@@ -161,7 +171,7 @@ class RG6():
 
     def open_gripper(self, force_val=400):
         """Opens gripper."""
-        params = [force_val, 1600, 16]
+        params = [force_val, self.max_width, 16]
         print("Start opening gripper.")
         result = self.client.write_registers(
             address=0, values=params, unit=65)
