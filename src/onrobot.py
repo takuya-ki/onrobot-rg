@@ -87,7 +87,7 @@ class RG():
         status = format(result.registers[0], '016b')
         status_list = [0] * 7
         if int(status[-1]):
-            print("Any motion is not ongoing so new commands are accepted.")
+            print("A motion is ongoing so new commands are not accepted.")
             status_list[0] = 1
         if int(status[-2]):
             print("An internal- or external grip is detected.")
@@ -182,3 +182,4 @@ class RG():
         print("Start moving gripper.")
         result = self.client.write_registers(
             address=0, values=params, unit=65)
+
