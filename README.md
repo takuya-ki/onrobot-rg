@@ -1,4 +1,4 @@
-# onrobot-rg6
+# onrobot-rg
 
 Controller for OnRobot RG2 and RG6 grippers.
 
