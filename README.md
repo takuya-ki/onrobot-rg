@@ -21,7 +21,7 @@ pip install -r requirements.txt
 
 1. Connect the cable between Compute Box and Tool Changer.
 2. Connect an ethernet cable between Compute Box and your computer.
-3. Execute demo script as below  
+3. Execute a demo script as below  
 ```bash
 python src/demo.py --ip 192.168.1.1 --port 502 --gripper rg2
 ```
