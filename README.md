@@ -13,8 +13,7 @@ Controller for OnRobot RG2 and RG6 grippers.
 ## Installation
 
 ```bash
-git clone git@github.com:takuya-ki/onrobot-rg.git; cd onrobot-rg
-pip install -r requirements.txt
+git clone git@github.com:takuya-ki/onrobot-rg.git && cd onrobot-rg && pip install -r requirements.txt
 ```
 
 ## Usage
